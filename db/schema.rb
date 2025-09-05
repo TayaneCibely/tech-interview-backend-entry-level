@@ -15,9 +15,12 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_02_192736) do
   enable_extension "plpgsql"
 
   create_table "carts", force: :cascade do |t|
+    t.integer "status", default: 0
     t.decimal "total_price", precision: 17, scale: 2
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["status"], name: "index_carts_on_status"
+    t.index ["updated_at"], name: "index_carts_on_updated_at"
   end
 
   create_table "products", force: :cascade do |t|
