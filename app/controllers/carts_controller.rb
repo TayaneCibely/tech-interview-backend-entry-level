@@ -1,6 +1,6 @@
 class CartsController < ApplicationController
-  before_action :ensure_cart, only: [:show, :add_item]
-  before_action :find_cart, only: [:remove_item]
+  before_action :find_cart, only: [:remove_item, :show]
+  before_action :ensure_cart, only: [:create, :add_item]
 
   # GET /cart
   def show
@@ -9,13 +9,13 @@ class CartsController < ApplicationController
 
   # POST /cart
   def create
-    @cart = find_or_create_cart!
-    render json: cart_response(@cart), status: :created
+    @cart = find_or_create_cart
+    result = CartServices::AddItem.call(@cart, cart_params)
 
     if result.success?
       render json: cart_response(@cart), status: :created
     else
-      render json: { error: result.error }, status: :unprocessable_entity
+      render json: { errors: result.errors }, status: :unprocessable_entity
     end
   end
 
@@ -26,7 +26,7 @@ class CartsController < ApplicationController
     if result.success?
       render json: cart_response(@cart)
     else
-      render json: { error: result.error }, status: :unprocessable_entity
+      render json: { errors: result.errors }, status: :unprocessable_entity
     end
   end
 
@@ -46,7 +46,7 @@ class CartsController < ApplicationController
   private
 
   def ensure_cart
-    @cart = find_or_create_cart!
+    @cart = find_or_create_cart
   end
 
   def find_cart
