@@ -1,3 +1,4 @@
+
 class Cart < ApplicationRecord
   has_many :cart_items, dependent: :destroy
   has_many :products, through: :cart_items
@@ -9,9 +10,12 @@ class Cart < ApplicationRecord
     cart_items.sum(&:total_price)
   end
 
-  # TODO: lógica para marcar o carrinho como abandonado e remover se abandonado
   def update_last_interaction!
     update!(updated_at: Time.current)
   end
 
+  def add_item(product, quantity)
+    result = CartServices::AddItem.call(self, { product_id: product.id, quantity: quantity })
+    raise StandardError, result.error unless result.success?
+  end
 end

@@ -54,6 +54,11 @@ class CartsController < ApplicationController
   end
 
   def find_or_create_cart
+    if params[:cart_id].present?
+      cart = Cart.find_by(id: params[:cart_id])
+      return cart if cart&.active?
+    end
+
     if session[:cart_id]
       cart = Cart.find_by(id: session[:cart_id])
       return cart if cart&.active?

@@ -21,7 +21,11 @@ module CartServices
         cart_item.quantity += quantity
         cart_item.save!
       else
-        cart.cart_items.create!(product: product, quantity: quantity)
+        if cart.persisted?
+          cart.cart_items.create!(product: product, quantity: quantity)
+        else
+          cart.cart_items.build(product: product, quantity: quantity)
+        end
       end
 
       cart.update_last_interaction!
