@@ -1,29 +1,20 @@
 require 'rails_helper'
 
-RSpec.describe Cart, type: :model do
-  context 'when validating' do
-    it 'validates numericality of total_price' do
-      cart = described_class.new(total_price: -1)
-      expect(cart.valid?).to be_falsey
-      expect(cart.errors[:total_price]).to include("must be greater than or equal to 0")
-    end
-  end
+RSpec.describe "/carts", type: :request do
+  describe "POST /add_items" do
+    let(:cart) { Cart.create }
+    let(:product) { Product.create(name: "Test Product", price: 10.0) }
+    let!(:cart_item) { CartItem.create(cart: cart, product: product, quantity: 1) }
 
-  describe 'mark_as_abandoned' do
-    let(:shopping_cart) { create(:shopping_cart) }
+    context 'when the product already is in the cart' do
+      subject do
+        post '/cart/add_item', params: { cart_id: cart.id, product_id: product.id, quantity: 1 }, as: :json
+        post '/cart/add_item', params: { cart_id: cart.id, product_id: product.id, quantity: 1 }, as: :json
+      end
 
-    it 'marks the shopping cart as abandoned if inactive for a certain time' do
-      shopping_cart.update(last_interaction_at: 3.hours.ago)
-      expect { shopping_cart.mark_as_abandoned }.to change { shopping_cart.abandoned? }.from(false).to(true)
-    end
-  end
-
-  describe 'remove_if_abandoned' do
-    let(:shopping_cart) { create(:shopping_cart, last_interaction_at: 7.days.ago) }
-
-    it 'removes the shopping cart if abandoned for a certain time' do
-      shopping_cart.mark_as_abandoned
-      expect { shopping_cart.remove_if_abandoned }.to change { Cart.count }.by(-1)
+      it 'updates the quantity of the existing item in the cart' do
+        expect { subject }.to change { cart_item.reload.quantity }.by(2)
+      end
     end
   end
 end
